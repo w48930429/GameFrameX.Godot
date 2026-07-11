@@ -140,7 +140,10 @@ namespace GameFrameX.Network.Editor
         {
             if (m_NetworkDefinePopupMenu != null)
             {
-                m_NetworkDefinePopupMenu.IdPressed -= OnNetworkDefineMenuIdPressed;
+                if (m_NetworkDefinePopupMenu.IsConnected(PopupMenu.SignalName.IdPressed, Callable.From((Action<long>)OnNetworkDefineMenuIdPressed)))
+                {
+                    m_NetworkDefinePopupMenu.IdPressed -= OnNetworkDefineMenuIdPressed;
+                }
                 RemoveNetworkDefineSubmenuItem();
                 m_NetworkDefinePopupMenu.QueueFree();
                 m_NetworkDefinePopupMenu = null;
