@@ -259,10 +259,14 @@ namespace GameFrameX.Editor
             m_TopPopupMenu.AddItem(L("资源打包器", "Asset Builder"), TopMenuAssetBuilderId);
             m_TopPopupMenu.AddItem(L("生成客户端配置", "Generate Client Config"), TopMenuGenerateClientConfigId);
             m_TopPopupMenu.AddSeparator();
+#if GODOT47
             if (m_TopPopupMenu.IsConnected(PopupMenu.SignalName.IdPressed, Callable.From((Action<long>)OnTopMenuIdPressed)))
             {
                 m_TopPopupMenu.IdPressed -= OnTopMenuIdPressed;
             }
+#else
+            m_TopPopupMenu.IdPressed -= OnTopMenuIdPressed;
+#endif
             m_TopPopupMenu.IdPressed += OnTopMenuIdPressed;
             BuildLogDefineSubmenu();
             if (m_LogDefinePopupMenu != null)
@@ -304,10 +308,14 @@ namespace GameFrameX.Editor
             m_LogDefinePopupMenu.AddItem(L("开启警告及以上日志", "Enable Warning+ Logs"), LogDefineEnableWarningAndAboveLogsId);
             m_LogDefinePopupMenu.AddItem(L("开启错误及以上日志", "Enable Error+ Logs"), LogDefineEnableErrorAndAboveLogsId);
             m_LogDefinePopupMenu.AddItem(L("开启严重错误及以上日志", "Enable Fatal+ Logs"), LogDefineEnableFatalAndAboveLogsId);
+#if GODOT47
             if (m_LogDefinePopupMenu.IsConnected(PopupMenu.SignalName.IdPressed, Callable.From((Action<long>)OnLogDefineMenuIdPressed)))
             {
                 m_LogDefinePopupMenu.IdPressed -= OnLogDefineMenuIdPressed;
             }
+#else
+            m_LogDefinePopupMenu.IdPressed -= OnLogDefineMenuIdPressed;
+#endif
             m_LogDefinePopupMenu.IdPressed += OnLogDefineMenuIdPressed;
             m_TopPopupMenu.AddChild(m_LogDefinePopupMenu);
         }
@@ -319,10 +327,14 @@ namespace GameFrameX.Editor
         {
             if (m_LogDefinePopupMenu != null)
             {
+#if GODOT47
                 if (m_LogDefinePopupMenu.IsConnected(PopupMenu.SignalName.IdPressed, Callable.From((Action<long>)OnLogDefineMenuIdPressed)))
                 {
                     m_LogDefinePopupMenu.IdPressed -= OnLogDefineMenuIdPressed;
                 }
+#else
+                m_LogDefinePopupMenu.IdPressed -= OnLogDefineMenuIdPressed;
+#endif
 
                 m_LogDefinePopupMenu.QueueFree();
                 m_LogDefinePopupMenu = null;
@@ -333,7 +345,11 @@ namespace GameFrameX.Editor
             if (m_TopMenuButton != null)
             {
                 PopupMenu popupMenu = m_TopMenuButton.GetPopup();
+#if GODOT47
                 if (popupMenu != null && popupMenu.IsConnected(PopupMenu.SignalName.IdPressed, Callable.From((Action<long>)OnTopMenuIdPressed)))
+#else
+                if (popupMenu != null)
+#endif
                 {
                     popupMenu.IdPressed -= OnTopMenuIdPressed;
                 }
@@ -382,7 +398,11 @@ namespace GameFrameX.Editor
                 }
 
                 var stalePopup = staleButton.GetPopup();
+#if GODOT47
                 if (stalePopup != null && stalePopup.IsConnected(PopupMenu.SignalName.IdPressed, Callable.From((Action<long>)OnTopMenuIdPressed)))
+#else
+                if (stalePopup != null)
+#endif
                 {
                     stalePopup.IdPressed -= OnTopMenuIdPressed;
                 }
