@@ -27,26 +27,43 @@
 //   Official Documentation: https://gameframex.doc.alianblank.com/
 //  ==========================================================================================
 
+using System;
+using Godot;
 using GameFrameX.Fsm.Runtime;
 using GameFrameX.Procedure.Runtime;
 using GameFrameX.Runtime;
+using Godot.Startup.Hotfix;
 
 namespace Godot.Startup.Procedure;
 
-/// <summary>
-/// 配置加载流程（预留配置表/本地化等初始化入口）。
-/// </summary>
 public sealed class ProcedureConfigState : ProcedureBase
 {
-    /// <summary>
-    /// 进入流程时执行。
-    /// </summary>
-    /// <param name="procedureOwner">流程持有者。</param>
     protected internal override void OnEnter(IFsm<IProcedureManager> procedureOwner)
     {
         base.OnEnter(procedureOwner);
         Log.Info("进入流程：ProcedureConfigState");
         LauncherFlowProgressReporter.Report(97f, nameof(ProcedureConfigState));
+
+        // --- Phase 1 临时验证代码 ---
+        try
+        {
+            var verifyType = HotfixTypeResolver.ResolveOrNull("Godot.Hotfix.Game.Data.Phase1Verifier");
+            if (verifyType != null)
+            {
+                var method = verifyType.GetMethod("Run", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                method?.Invoke(null, null);
+            }
+            else
+            {
+                GD.PrintErr("[Phase1] Phase1Verifier type not found in Hotfix assembly");
+            }
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr($"[Phase1] FAILED: {e.Message}");
+        }
+        // --- 临时验证代码 END ---
+
         ChangeState<ProcedureGameLauncherState>(procedureOwner);
     }
 }

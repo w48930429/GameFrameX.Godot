@@ -13,6 +13,7 @@ using Godot.Hotfix.Config;
 
 namespace Godot.Hotfix.GodotGUI
 {
+
 	[OptionUIGroup(UIGroupNameConstants.Normal)]
 	public partial class UILogin : GDGUI
 	{
@@ -92,7 +93,7 @@ namespace Godot.Hotfix.GodotGUI
 		private void OnLoginButtonPressed()
 		{
 			GD.Print("[UILogin] Login button pressed");
-			_ = TryRequestHttpSmokeAsync();
+			// _ = TryRequestHttpSmokeAsync();
 			LoginClicked?.Invoke();
 		}
 

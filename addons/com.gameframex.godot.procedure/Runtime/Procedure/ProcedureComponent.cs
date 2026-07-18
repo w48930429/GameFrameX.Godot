@@ -125,6 +125,11 @@ namespace GameFrameX.Procedure.Runtime
                 Type procedureType = Utility.Assembly.GetType(availableProcedureTypeNames[i]);
                 if (procedureType == null)
                 {
+                    procedureType = Godot.Startup.Hotfix.HotfixTypeResolver.ResolveOrNull(availableProcedureTypeNames[i]);
+                }
+
+                if (procedureType == null)
+                {
                     Log.Error("Can not find procedure type '{0}'.", availableProcedureTypeNames[i]);
                     return;
                 }
@@ -175,6 +180,8 @@ namespace GameFrameX.Procedure.Runtime
 
                 result.Add(typeName);
             }
+
+            Godot.Startup.Hotfix.HotfixTypeResolver.ResolveOrNull("Godot.Startup.Procedure.__HotfixAssemblyProbe__");
 
             var autoAdded = 0;
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())

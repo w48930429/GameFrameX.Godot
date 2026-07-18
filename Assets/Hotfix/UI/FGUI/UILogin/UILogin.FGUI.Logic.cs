@@ -74,7 +74,7 @@ namespace Godot.Hotfix.FairyGUI
         private void OnLoginClicked()
         {
             GD.Print("[UILogin-FGUI] login trigger clicked.");
-            _ = TryRequestHttpSmokeAsync();
+            // _ = TryRequestHttpSmokeAsync();
             LoginClicked?.Invoke();
         }
 

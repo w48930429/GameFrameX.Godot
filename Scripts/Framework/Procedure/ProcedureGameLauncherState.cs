@@ -1,6 +1,7 @@
 using GameFrameX.Fsm.Runtime;
 using GameFrameX.Procedure.Runtime;
 using GameFrameX.Runtime;
+using Godot.Startup.Hotfix;
 
 namespace Godot.Startup.Procedure;
 
@@ -19,5 +20,10 @@ public sealed class ProcedureGameLauncherState : ProcedureBase
 		Log.Info("进入流程：ProcedureGameLauncherState");
 		LauncherFlowProgressReporter.Report(100f, nameof(ProcedureGameLauncherState));
 		ProcedureLauncherState.EnsureLauncherUiFlowStarted(nameof(ProcedureGameLauncherState));
+		var hotfixProcedureType = HotfixTypeResolver.ResolveOrNull("Godot.Startup.Procedure.ProcedureCheckUpdate");
+		if (hotfixProcedureType != null)
+		{
+			ChangeState(procedureOwner, hotfixProcedureType);
+		}
 	}
 }

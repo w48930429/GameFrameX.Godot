@@ -30,6 +30,7 @@
 // ==========================================================================================
 
 using System;
+using System.Linq;
 using Godot;
 
 namespace GameFrameX.Runtime
@@ -145,6 +146,17 @@ namespace GameFrameX.Runtime
         /// </summary>
         public override void _Ready()
         {
+            Godot.Startup.Hotfix.HotfixTypeResolver.ResolveOrNull("Godot.Hotfix.Game.Data.Phase1Verifier");
+            System.Reflection.Assembly hotfixAssembly = null;
+            foreach (var a in System.AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (a.GetName().Name == "Hotfix") { hotfixAssembly = a; break; }
+            }
+            if (hotfixAssembly != null)
+            {
+                Godot.Bridge.ScriptManagerBridge.LookupScriptsInAssembly(hotfixAssembly);
+                RegisterHotfixScriptPathAliases(hotfixAssembly);
+            }
             PreserveDefaultHelperTypes();
             IsAutoRegister = false;
             base._Ready();
@@ -212,7 +224,7 @@ namespace GameFrameX.Runtime
             }
             else if (what == NotificationPredelete || what == NotificationExitTree)
             {
-                // Equivalent dispose callback
+                CleanupHotfixScriptPathAliases();
                 GameFrameworkEntry.Shutdown();
             }
         }
@@ -395,6 +407,177 @@ namespace GameFrameX.Runtime
                 objectPoolComponent.ReleaseAllUnused();
             }
 
+        }
+
+        private static void RegisterHotfixScriptPathAliases(System.Reflection.Assembly hotfixAssembly)
+        {
+            try
+            {
+                var bridgeType = typeof(Godot.Bridge.ScriptManagerBridge);
+                var pathTypeBiMapField = bridgeType.GetField("_pathTypeBiMap",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                if (pathTypeBiMapField == null)
+                {
+                    Log.Warning("[BaseComponent] _pathTypeBiMap field not found, skip Hotfix path alias registration.");
+                    return;
+                }
+
+                object pathTypeBiMap = pathTypeBiMapField.GetValue(null);
+                if (pathTypeBiMap == null)
+                {
+                    Log.Warning("[BaseComponent] _pathTypeBiMap is null, skip Hotfix path alias registration.");
+                    return;
+                }
+
+                var addMethod = pathTypeBiMap.GetType().GetMethod("Add",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (addMethod == null)
+                {
+                    Log.Warning("[BaseComponent] PathScriptTypeBiMap.Add method not found, skip Hotfix path alias registration.");
+                    return;
+                }
+
+                const string hotfixPrefix = "res://Assets/Hotfix/";
+                int aliasCount = 0;
+
+                foreach (var type in hotfixAssembly.GetTypes())
+                {
+                    if (type.IsNested || type.IsAbstract)
+                    {
+                        continue;
+                    }
+
+                    if (!typeof(Godot.GodotObject).IsAssignableFrom(type))
+                    {
+                        continue;
+                    }
+
+                    var scriptPathAttr = type.GetCustomAttributes(inherit: false)
+                        .OfType<Godot.ScriptPathAttribute>()
+                        .FirstOrDefault();
+                    if (scriptPathAttr == null)
+                    {
+                        continue;
+                    }
+
+                    string originalPath = scriptPathAttr.Path;
+                    if (!originalPath.StartsWith("res://") || originalPath.StartsWith(hotfixPrefix))
+                    {
+                        continue;
+                    }
+
+                    string aliasedPath = hotfixPrefix + originalPath.Substring("res://".Length);
+                    try
+                    {
+                        addMethod.Invoke(pathTypeBiMap, new object[] { aliasedPath, type });
+                        aliasCount++;
+                    }
+                    catch (System.Reflection.TargetInvocationException tie)
+                    {
+                        if (tie.InnerException is System.ArgumentException)
+                        {
+                            // Key already exists, which is fine
+                        }
+                        else
+                        {
+                            throw;
+                        }
+                    }
+                }
+
+                if (aliasCount > 0)
+                {
+                    Log.Info("[BaseComponent] Registered {0} Hotfix script path aliases (prefixed with Assets/Hotfix/).", aliasCount);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error("[BaseComponent] Failed to register Hotfix script path aliases: {0}", e.Message);
+            }
+        }
+
+        private static void CleanupHotfixScriptPathAliases()
+        {
+            try
+            {
+                var bridgeType = typeof(Godot.Bridge.ScriptManagerBridge);
+                var pathTypeBiMapField = bridgeType.GetField("_pathTypeBiMap",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                if (pathTypeBiMapField == null)
+                {
+                    return;
+                }
+
+                object pathTypeBiMap = pathTypeBiMapField.GetValue(null);
+                if (pathTypeBiMap == null)
+                {
+                    return;
+                }
+
+                var removeByScriptTypeMethod = pathTypeBiMap.GetType().GetMethod("RemoveByScriptType",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (removeByScriptTypeMethod == null)
+                {
+                    return;
+                }
+
+                var hotfixAssembly = System.AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(static m => string.Equals(m.GetName().Name, "Hotfix", StringComparison.Ordinal));
+                if (hotfixAssembly == null)
+                {
+                    return;
+                }
+
+                int removedCount = 0;
+                foreach (var type in hotfixAssembly.GetTypes())
+                {
+                    if (type.IsNested || type.IsAbstract)
+                    {
+                        continue;
+                    }
+
+                    if (!typeof(Godot.GodotObject).IsAssignableFrom(type))
+                    {
+                        continue;
+                    }
+
+                    var scriptPathAttr = type.GetCustomAttributes(inherit: false)
+                        .OfType<Godot.ScriptPathAttribute>()
+                        .FirstOrDefault();
+                    if (scriptPathAttr == null)
+                    {
+                        continue;
+                    }
+
+                    string originalPath = scriptPathAttr.Path;
+                    if (!originalPath.StartsWith("res://") || originalPath.StartsWith("res://Assets/Hotfix/"))
+                    {
+                        continue;
+                    }
+
+                    string aliasedPath = "res://Assets/Hotfix/" + originalPath.Substring("res://".Length);
+                    try
+                    {
+                        removeByScriptTypeMethod.Invoke(pathTypeBiMap, new object[] { type });
+                        removedCount++;
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                if (removedCount > 0)
+                {
+                    Log.Info("[BaseComponent] Cleaned up {0} Hotfix script path aliases.", removedCount);
+                }
+
+                Godot.Startup.Hotfix.HotfixTypeResolver.ResetForReload();
+            }
+            catch
+            {
+                // Best-effort cleanup, don't crash on shutdown
+            }
         }
     }
 }

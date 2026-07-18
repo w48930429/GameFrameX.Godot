@@ -17,6 +17,14 @@ internal static class HotfixTypeResolver
     private static bool s_TypeLoadFailureLogged;
     private static readonly HashSet<string> s_TryGetTypeFailureLogged = new(StringComparer.Ordinal);
 
+    internal static void ResetForReload()
+    {
+        s_HotfixAssembly = null;
+        s_LoadAttemptLogged = false;
+        s_TypeLoadFailureLogged = false;
+        s_TryGetTypeFailureLogged.Clear();
+    }
+
     internal static Type ResolveOrNull(string typeFullName)
     {
         if (string.IsNullOrWhiteSpace(typeFullName))

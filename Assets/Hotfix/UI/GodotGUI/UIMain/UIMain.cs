@@ -6,6 +6,7 @@ using GameFrameX.Runtime;
 
 namespace Godot.Hotfix.GodotGUI
 {
+
 	[OptionUIGroup(UIGroupNameConstants.Normal)]
 	public partial class UIMain : GDGUI
 	{
