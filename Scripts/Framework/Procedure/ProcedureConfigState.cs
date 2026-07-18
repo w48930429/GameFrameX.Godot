@@ -44,26 +44,48 @@ public sealed class ProcedureConfigState : ProcedureBase
         Log.Info("进入流程：ProcedureConfigState");
         LauncherFlowProgressReporter.Report(97f, nameof(ProcedureConfigState));
 
-        // --- Phase 1 临时验证代码 ---
+        LoadStaticData();
+        VerifyGameComponents();
+
+        ChangeState<ProcedureGameLauncherState>(procedureOwner);
+    }
+
+    private static void LoadStaticData()
+    {
         try
         {
-            var verifyType = HotfixTypeResolver.ResolveOrNull("Godot.Hotfix.Game.Data.Phase1Verifier");
-            if (verifyType != null)
+            var accessorType = HotfixTypeResolver.ResolveOrNull("Godot.Hotfix.Game.Data.StaticDataAccessor");
+            if (accessorType == null)
             {
-                var method = verifyType.GetMethod("Run", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                method?.Invoke(null, null);
+                GD.PrintErr("[ProcedureConfigState] StaticDataAccessor type not found");
+                return;
             }
-            else
+
+            var props = new[]
             {
-                GD.PrintErr("[Phase1] Phase1Verifier type not found in Hotfix assembly");
+                "MonsterData", "MapData", "AllData", "BuildData",
+                "SkillData", "TzData", "SpiritData", "AchData"
+            };
+
+            foreach (var propName in props)
+            {
+                var prop = accessorType.GetProperty(propName,
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                prop?.GetValue(null);
             }
         }
         catch (Exception e)
         {
-            GD.PrintErr($"[Phase1] FAILED: {e.Message}");
+            GD.PrintErr($"[ProcedureConfigState] LoadStaticData failed: {e.Message}");
         }
-        // --- 临时验证代码 END ---
+    }
 
-        ChangeState<ProcedureGameLauncherState>(procedureOwner);
+    private static void VerifyGameComponents()
+    {
+        var compType = HotfixTypeResolver.ResolveOrNull("Godot.Hotfix.Game.Component.GameConstantComponent");
+        var saveType = HotfixTypeResolver.ResolveOrNull("Godot.Hotfix.Game.Component.SaveComponent");
+        var fightType = HotfixTypeResolver.ResolveOrNull("Godot.Hotfix.Game.Component.FightComponent");
+        var loopType = HotfixTypeResolver.ResolveOrNull("Godot.Hotfix.Game.Component.GameLoopComponent");
+        GD.Print($"[ProcedureConfigState] GameConstant={compType != null} Save={saveType != null} Fight={fightType != null} GameLoop={loopType != null}");
     }
 }

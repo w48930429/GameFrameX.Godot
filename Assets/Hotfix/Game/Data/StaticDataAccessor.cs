@@ -12,6 +12,7 @@ namespace Godot.Hotfix.Game.Data
         private static GodotDict _skillData;
         private static GodotDict _tzData;
         private static GodotDict _spiritData;
+        private static GodotDict _achData;
 
         public static GodotDict MonsterData => _monsterData ??= LoadEncryptedJson("Moster.json");
         public static GodotDict MapData => _mapData ??= LoadEncryptedJson("Map.json");
@@ -20,6 +21,7 @@ namespace Godot.Hotfix.Game.Data
         public static GodotDict SkillData => _skillData ??= LoadEncryptedJson("SkillData.json");
         public static GodotDict TzData => _tzData ??= LoadEncryptedJson("TzData.json");
         public static GodotDict SpiritData => _spiritData ??= LoadEncryptedJson("Spirit.json");
+        public static GodotDict AchData => _achData ??= LoadEncryptedJson("AchData.json");
 
         public static GodotDict GetMonster(Variant id)
         {
@@ -56,6 +58,11 @@ namespace Godot.Hotfix.Game.Data
             return GetFromDict(SpiritData, id);
         }
 
+        public static GodotDict GetAch(Variant id)
+        {
+            return GetFromDict(AchData, id);
+        }
+
         private static GodotDict GetFromDict(GodotDict dict, Variant key)
         {
             if (dict != null && dict.TryGetValue(key, out var val))
@@ -68,12 +75,30 @@ namespace Godot.Hotfix.Game.Data
 
         private static GodotDict LoadEncryptedJson(string fileName)
         {
-            var path = "res://Assets/Storage/" + fileName;
-            using var file = FileAccess.OpenEncryptedWithPass(path, FileAccess.ModeFlags.Read, "sakuya");
-            if (file == null) return new GodotDict();
-            var json = file.GetAsText();
-            var result = Json.ParseString(json);
-            return result.AsGodotDictionary() ?? new GodotDict();
+            var path = "res://Assets/Hotfix/Storage/" + fileName;
+
+            using var plainFile = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+            if (plainFile != null)
+            {
+                var plainJson = plainFile.GetAsText();
+                var plainResult = Json.ParseString(plainJson);
+                var plainDict = plainResult.AsGodotDictionary();
+                if (plainDict != null)
+                    return plainDict;
+            }
+
+            using var encFile = FileAccess.OpenEncryptedWithPass(path, FileAccess.ModeFlags.Read, "sakuya");
+            if (encFile != null)
+            {
+                var json = encFile.GetAsText();
+                var result = Json.ParseString(json);
+                var dict = result.AsGodotDictionary();
+                if (dict != null)
+                    return dict;
+            }
+
+            GD.PrintErr($"[StaticDataAccessor] Failed to load: {path}");
+            return new GodotDict();
         }
     }
 }

@@ -146,17 +146,7 @@ namespace GameFrameX.Runtime
         /// </summary>
         public override void _Ready()
         {
-            Godot.Startup.Hotfix.HotfixTypeResolver.ResolveOrNull("Godot.Hotfix.Game.Data.Phase1Verifier");
-            System.Reflection.Assembly hotfixAssembly = null;
-            foreach (var a in System.AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (a.GetName().Name == "Hotfix") { hotfixAssembly = a; break; }
-            }
-            if (hotfixAssembly != null)
-            {
-                Godot.Bridge.ScriptManagerBridge.LookupScriptsInAssembly(hotfixAssembly);
-                RegisterHotfixScriptPathAliases(hotfixAssembly);
-            }
+
             PreserveDefaultHelperTypes();
             IsAutoRegister = false;
             base._Ready();

@@ -10,7 +10,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <NoWarn>$(NoWarn);CS8981</NoWarn>
-    <DefineConstants>ENABLE_GAME_FRAME_X_WEB_SOCKET;ENABLE_LOG;ENABLE_GAME_FRAME_X_PROTOBUF;ENABLE_GAME_FRAME_X_EVENT;GODOT47</DefineConstants>
+    <DefineConstants>ENABLE_GAME_FRAME_X_WEB_SOCKET;ENABLE_LOG;ENABLE_GAME_FRAME_X_PROTOBUF;ENABLE_GAME_FRAME_X_EVENT;ENABLE_GAME_FRAME_X_GAME;GODOT47</DefineConstants>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
@@ -23,7 +23,7 @@
     <DefineConstants>ENABLE_GAME_FRAME_X_WEB_SOCKET;ENABLE_LOG;ENABLE_GAME_FRAME_X_PROTOBUF;GODOT47</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="bin\**\*;obj\**\*;UI\FGUI\**\Components\**\*.cs;UI\FGUI\UILogin\**\*.cs;UI\GodotGUI\UILogin\**\*.cs" />
+    <Compile Include="**\*.cs" Exclude="bin\**\*;obj\**\*;UI\FGUI\**\Components\**\*.cs;UI\FGUI\UILogin\**\*.cs;UI\GodotGUI\UILogin\**\*.cs;Game\HotfixBootstrap.cs" />
     <Compile Include="..\Resources\UI\FGUI\UILauncher\UILauncher\**\*.cs" Exclude="..\Resources\UI\FGUI\UILauncher\UILauncher\Components\**\*.cs;..\Resources\UI\FGUI\UILauncher\UILauncher\UILauncher.cs;..\Resources\UI\FGUI\UILauncher\UILauncher\UILauncher.FGUI.Logic.cs" />
     <Compile Include="..\Resources\UI\GGUI\UILauncher\UILauncher\**\*.cs" Exclude="..\Resources\UI\GGUI\UILauncher\UILauncher\UILauncher.cs" />
   </ItemGroup>
